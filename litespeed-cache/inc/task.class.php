@@ -2,25 +2,25 @@
 /**
  * The cron task class.
  *
- * @since      	1.1.3
- * @since  		1.5 Moved into /inc
+ * @since       1.1.3
+ * @since       1.5 Moved into /inc
  */
 
 if ( ! defined( 'WPINC' ) ) {
-	die ;
+	die;
 }
 
-class LiteSpeed_Cache_Task
-{
-	private static $_instance ;
+class LiteSpeed_Cache_Task {
 
-	const CRON_ACTION_HOOK_CRAWLER = 'litespeed_crawl_trigger' ;
-	const CRON_ACTION_HOOK_IMGOPTM = 'litespeed_imgoptm_trigger' ;
-	const CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST = 'litespeed_imgoptm_auto_request_trigger' ;
-	const CRON_ACTION_HOOK_CCSS = 'litespeed_ccss_trigger' ;
-	const CRON_ACTION_HOOK_IMG_PLACEHOLDER = 'litespeed_img_placeholder_trigger' ;
-	const CRON_FITLER_CRAWLER = 'litespeed_crawl_filter' ;
-	const CRON_FITLER = 'litespeed_filter' ;
+	private static $_instance;
+
+	const CRON_ACTION_HOOK_CRAWLER              = 'litespeed_crawl_trigger';
+	const CRON_ACTION_HOOK_IMGOPTM              = 'litespeed_imgoptm_trigger';
+	const CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST = 'litespeed_imgoptm_auto_request_trigger';
+	const CRON_ACTION_HOOK_CCSS                 = 'litespeed_ccss_trigger';
+	const CRON_ACTION_HOOK_IMG_PLACEHOLDER      = 'litespeed_img_placeholder_trigger';
+	const CRON_FITLER_CRAWLER                   = 'litespeed_crawl_filter';
+	const CRON_FITLER                           = 'litespeed_filter';
 
 	/**
 	 * Init
@@ -28,45 +28,44 @@ class LiteSpeed_Cache_Task
 	 * @since  1.6
 	 * @access private
 	 */
-	private function __construct()
-	{
-		LiteSpeed_Cache_Log::debug2( 'Task init' ) ;
+	private function __construct() {
+		LiteSpeed_Cache_Log::debug2( 'Task init' );
 
 		// Register crawler cron
 		if ( LiteSpeed_Cache::config( LiteSpeed_Cache_Config::CRWL_CRON_ACTIVE ) && LiteSpeed_Cache_Router::can_crawl() ) {
 			// keep cron intval filter
-			self::schedule_filter_crawler() ;
+			self::schedule_filter_crawler();
 
 			// cron hook
-			add_action( self::CRON_ACTION_HOOK_CRAWLER, 'LiteSpeed_Cache_Crawler::crawl_data' ) ;
+			add_action( self::CRON_ACTION_HOOK_CRAWLER, 'LiteSpeed_Cache_Crawler::crawl_data' );
 		}
 
 		// Register img optimization fetch ( always fetch immediately )
 		if ( LiteSpeed_Cache::config( LiteSpeed_Cache_Config::OPT_MEDIA_OPTM_CRON ) ) {
-			self::schedule_filter_imgoptm() ;
+			self::schedule_filter_imgoptm();
 
-			add_action( self::CRON_ACTION_HOOK_IMGOPTM, 'LiteSpeed_Cache_Img_Optm::cron_pull_optimized_img' ) ;
+			add_action( self::CRON_ACTION_HOOK_IMGOPTM, 'LiteSpeed_Cache_Img_Optm::cron_pull_optimized_img' );
 		}
 
 		// Image optm auto request
 		if ( LiteSpeed_Cache::config( LiteSpeed_Cache_Config::OPT_MEDIA_OPTM_AUTO ) ) {
-			self::schedule_filter_imgoptm_auto_request() ;
+			self::schedule_filter_imgoptm_auto_request();
 
-			add_action( self::CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST, 'LiteSpeed_Cache_Img_Optm::cron_auto_request' ) ;
+			add_action( self::CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST, 'LiteSpeed_Cache_Img_Optm::cron_auto_request' );
 		}
 
 		// Register ccss generation
 		if ( LiteSpeed_Cache::config( LiteSpeed_Cache_Config::OPT_OPTM_CCSS_ASYNC ) && LiteSpeed_Cache_CSS::has_queue() ) {
-			self::schedule_filter_ccss() ;
+			self::schedule_filter_ccss();
 
-			add_action( self::CRON_ACTION_HOOK_CCSS, 'LiteSpeed_Cache_CSS::cron_ccss' ) ;
+			add_action( self::CRON_ACTION_HOOK_CCSS, 'LiteSpeed_Cache_CSS::cron_ccss' );
 		}
 
 		// Register image placeholder generation
 		if ( LiteSpeed_Cache::config( LiteSpeed_Cache_Config::OPID_MEDIA_PLACEHOLDER_RESP_ASYNC ) && LiteSpeed_Cache_Media::has_queue() ) {
-			self::schedule_filter_placeholder() ;
+			self::schedule_filter_placeholder();
 
-			add_action( self::CRON_ACTION_HOOK_IMG_PLACEHOLDER, 'LiteSpeed_Cache_Media::cron_placeholder' ) ;
+			add_action( self::CRON_ACTION_HOOK_IMG_PLACEHOLDER, 'LiteSpeed_Cache_Media::cron_placeholder' );
 		}
 	}
 
@@ -76,23 +75,22 @@ class LiteSpeed_Cache_Task
 	 * @since 1.1.0
 	 * @access public
 	 */
-	public static function enable()
-	{
-		$id = LiteSpeed_Cache_Config::CRWL_CRON_ACTIVE ;
+	public static function enable() {
+		$id = LiteSpeed_Cache_Config::CRWL_CRON_ACTIVE;
 
 		// get new setting
-		$is_enabled = ! LiteSpeed_Cache::config( $id ) ;
+		$is_enabled = ! LiteSpeed_Cache::config( $id );
 
 		// log
-		LiteSpeed_Cache_Log::debug( 'Crawler log: Crawler is ' . ( $is_enabled ? 'enabled' : 'disabled' ) ) ;
+		LiteSpeed_Cache_Log::debug( 'Crawler log: Crawler is ' . ( $is_enabled ? 'enabled' : 'disabled' ) );
 
 		// update config
-		LiteSpeed_Cache_Config::get_instance()->update_options( array( $id => $is_enabled ) ) ;
+		LiteSpeed_Cache_Config::get_instance()->update_options( array( $id => $is_enabled ) );
 
-		self::update() ;
+		self::update();
 
-		echo json_encode( array( 'enable' => $is_enabled ) ) ;
-		wp_die() ;
+		echo json_encode( array( 'enable' => $is_enabled ) );
+		wp_die();
 	}
 
 	/**
@@ -102,18 +100,16 @@ class LiteSpeed_Cache_Task
 	 * @access public
 	 * @param array $options The options to check if cron should be enabled
 	 */
-	public static function update( $options = false )
-	{
-		$id = LiteSpeed_Cache_Config::CRWL_CRON_ACTIVE ;
+	public static function update( $options = false ) {
+		 $id = LiteSpeed_Cache_Config::CRWL_CRON_ACTIVE;
 		if ( $options && isset( $options[ $id ] ) ) {
-			$is_active = $options[$id] ;
-		}
-		else {
-			$is_active = LiteSpeed_Cache::config( $id ) ;
+			$is_active = $options[ $id ];
+		} else {
+			$is_active = LiteSpeed_Cache::config( $id );
 		}
 
 		if ( ! $is_active ) {
-			self::clear() ;
+			self::clear();
 		}
 
 	}
@@ -124,14 +120,13 @@ class LiteSpeed_Cache_Task
 	 * @since 2.4.1
 	 * @access public
 	 */
-	public static function schedule_filter_imgoptm_auto_request()
-	{
-		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' ) ;
+	public static function schedule_filter_imgoptm_auto_request() {
+		 add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' );
 
 		// Schedule event here to see if it can lost again or not
-		if( ! wp_next_scheduled( self::CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST ) ) {
-			LiteSpeed_Cache_Log::debug( 'Cron log: ......img optm auto request cron hook register......' ) ;
-			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST ) ;
+		if ( ! wp_next_scheduled( self::CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST ) ) {
+			LiteSpeed_Cache_Log::debug( 'Cron log: ......img optm auto request cron hook register......' );
+			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_IMGOPTM_AUTO_REQUEST );
 		}
 	}
 
@@ -141,14 +136,13 @@ class LiteSpeed_Cache_Task
 	 * @since 1.6.1
 	 * @access public
 	 */
-	public static function schedule_filter_imgoptm()
-	{
-		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' ) ;
+	public static function schedule_filter_imgoptm() {
+		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' );
 
 		// Schedule event here to see if it can lost again or not
-		if( ! wp_next_scheduled( self::CRON_ACTION_HOOK_IMGOPTM ) ) {
-			LiteSpeed_Cache_Log::debug( 'Cron log: ......img optimization cron hook register......' ) ;
-			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_IMGOPTM ) ;
+		if ( ! wp_next_scheduled( self::CRON_ACTION_HOOK_IMGOPTM ) ) {
+			LiteSpeed_Cache_Log::debug( 'Cron log: ......img optimization cron hook register......' );
+			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_IMGOPTM );
 		}
 	}
 
@@ -158,14 +152,13 @@ class LiteSpeed_Cache_Task
 	 * @since 2.3
 	 * @access public
 	 */
-	public static function schedule_filter_ccss()
-	{
-		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' ) ;
+	public static function schedule_filter_ccss() {
+		 add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' );
 
 		// Schedule event here to see if it can lost again or not
-		if( ! wp_next_scheduled( self::CRON_ACTION_HOOK_CCSS ) ) {
-			LiteSpeed_Cache_Log::debug( 'Cron log: ......ccss cron hook register......' ) ;
-			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_CCSS ) ;
+		if ( ! wp_next_scheduled( self::CRON_ACTION_HOOK_CCSS ) ) {
+			LiteSpeed_Cache_Log::debug( 'Cron log: ......ccss cron hook register......' );
+			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_CCSS );
 		}
 	}
 
@@ -175,14 +168,13 @@ class LiteSpeed_Cache_Task
 	 * @since 2.5.1
 	 * @access public
 	 */
-	public static function schedule_filter_placeholder()
-	{
-		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' ) ;
+	public static function schedule_filter_placeholder() {
+		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter' );
 
 		// Schedule event here to see if it can lost again or not
-		if( ! wp_next_scheduled( self::CRON_ACTION_HOOK_IMG_PLACEHOLDER ) ) {
-			LiteSpeed_Cache_Log::debug( 'Cron log: ......image placeholder cron hook register......' ) ;
-			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_IMG_PLACEHOLDER ) ;
+		if ( ! wp_next_scheduled( self::CRON_ACTION_HOOK_IMG_PLACEHOLDER ) ) {
+			LiteSpeed_Cache_Log::debug( 'Cron log: ......image placeholder cron hook register......' );
+			wp_schedule_event( time(), self::CRON_FITLER, self::CRON_ACTION_HOOK_IMG_PLACEHOLDER );
 		}
 	}
 
@@ -192,14 +184,13 @@ class LiteSpeed_Cache_Task
 	 * @since 1.1.0
 	 * @access public
 	 */
-	public static function schedule_filter_crawler()
-	{
-		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter_crawler' ) ;
+	public static function schedule_filter_crawler() {
+		add_filter( 'cron_schedules', 'LiteSpeed_Cache_Task::lscache_cron_filter_crawler' );
 
 		// Schedule event here to see if it can lost again or not
-		if( ! wp_next_scheduled( self::CRON_ACTION_HOOK_CRAWLER ) ) {
-			LiteSpeed_Cache_Log::debug( 'Crawler cron log: ......cron hook register......' ) ;
-			wp_schedule_event( time(), self::CRON_FITLER_CRAWLER, self::CRON_ACTION_HOOK_CRAWLER ) ;
+		if ( ! wp_next_scheduled( self::CRON_ACTION_HOOK_CRAWLER ) ) {
+			LiteSpeed_Cache_Log::debug( 'Crawler cron log: ......cron hook register......' );
+			wp_schedule_event( time(), self::CRON_FITLER_CRAWLER, self::CRON_ACTION_HOOK_CRAWLER );
 		}
 	}
 
@@ -210,15 +201,14 @@ class LiteSpeed_Cache_Task
 	 * @access public
 	 * @param array $schedules WP Hook
 	 */
-	public static function lscache_cron_filter( $schedules )
-	{
+	public static function lscache_cron_filter( $schedules ) {
 		if ( ! array_key_exists( self::CRON_FITLER, $schedules ) ) {
 			$schedules[ self::CRON_FITLER ] = array(
 				'interval' => 60,
 				'display'  => __( 'LiteSpeed Cache Custom Cron Common', 'litespeed-cache' ),
-			) ;
+			);
 		}
-		return $schedules ;
+		return $schedules;
 	}
 
 	/**
@@ -228,18 +218,17 @@ class LiteSpeed_Cache_Task
 	 * @access public
 	 * @param array $schedules WP Hook
 	 */
-	public static function lscache_cron_filter_crawler( $schedules )
-	{
-		$interval = LiteSpeed_Cache::config( LiteSpeed_Cache_Config::CRWL_RUN_INTERVAL ) ;
+	public static function lscache_cron_filter_crawler( $schedules ) {
+		$interval = LiteSpeed_Cache::config( LiteSpeed_Cache_Config::CRWL_RUN_INTERVAL );
 		// $wp_schedules = wp_get_schedules() ;
 		if ( ! array_key_exists( self::CRON_FITLER_CRAWLER, $schedules ) ) {
-			// 	LiteSpeed_Cache_Log::debug('Crawler cron log: ......cron filter '.$interval.' added......') ;
+			// LiteSpeed_Cache_Log::debug('Crawler cron log: ......cron filter '.$interval.' added......') ;
 			$schedules[ self::CRON_FITLER_CRAWLER ] = array(
 				'interval' => $interval,
 				'display'  => __( 'LiteSpeed Cache Custom Cron Crawler', 'litespeed-cache' ),
-			) ;
+			);
 		}
-		return $schedules ;
+		return $schedules;
 	}
 
 	/**
@@ -248,10 +237,9 @@ class LiteSpeed_Cache_Task
 	 * @since 1.1.0
 	 * @access public
 	 */
-	public static function clear()
-	{
-		LiteSpeed_Cache_Log::debug( 'Crawler cron log: ......cron hook cleared......' ) ;
-		wp_clear_scheduled_hook( self::CRON_ACTION_HOOK_CRAWLER ) ;
+	public static function clear() {
+		LiteSpeed_Cache_Log::debug( 'Crawler cron log: ......cron hook cleared......' );
+		wp_clear_scheduled_hook( self::CRON_ACTION_HOOK_CRAWLER );
 	}
 
 
@@ -262,13 +250,12 @@ class LiteSpeed_Cache_Task
 	 * @access public
 	 * @return Current class instance.
 	 */
-	public static function get_instance()
-	{
+	public static function get_instance() {
 		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self() ;
+			self::$_instance = new self();
 		}
 
-		return self::$_instance ;
+		return self::$_instance;
 	}
 
 }

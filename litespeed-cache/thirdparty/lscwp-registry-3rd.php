@@ -9,10 +9,9 @@
  *
  * It is not required to add all integration files here, this just provides
  * a common place for plugin authors to append their file to.
- *
  */
-if ( ! defined('ABSPATH') ) {
-    die() ;
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
 }
 
 $thirdparty_list = array(
@@ -34,8 +33,8 @@ $thirdparty_list = array(
 	'wpml',
 	'wpdiscuz',
 	'facetwp',
-) ;
+);
 
-foreach ($thirdparty_list as $val) {
-	include_once(LSCWP_DIR . 'thirdparty/lscwp-3rd-' . $val . '.cls.php') ;
+foreach ( $thirdparty_list as $val ) {
+	include_once LSCWP_DIR . 'thirdparty/lscwp-3rd-' . $val . '.cls.php';
 }

@@ -2,28 +2,28 @@
 /**
  * The import/export class.
  *
- * @since      	1.8.2
- * @package    	LiteSpeed_Cache
- * @subpackage 	LiteSpeed_Cache/inc
- * @author     	LiteSpeed Technologies <info@litespeedtech.com>
+ * @since       1.8.2
+ * @package     LiteSpeed_Cache
+ * @subpackage  LiteSpeed_Cache/inc
+ * @author      LiteSpeed Technologies <info@litespeedtech.com>
  */
 
 if ( ! defined( 'WPINC' ) ) {
-	die ;
+	die;
 }
 
-class LiteSpeed_Cache_Import
-{
-	private static $_instance ;
+class LiteSpeed_Cache_Import {
 
-	private $_cfg_items ;
-	private $__cfg ;
+	private static $_instance;
 
-	const TYPE_IMPORT = 'import' ;
-	const TYPE_EXPORT = 'export' ;
-	const TYPE_RESET = 'reset' ;
+	private $_cfg_items;
+	private $__cfg;
 
-	const DB_IMPORT_LOG = 'litespeed_import_log' ;
+	const TYPE_IMPORT = 'import';
+	const TYPE_EXPORT = 'export';
+	const TYPE_RESET  = 'reset';
+
+	const DB_IMPORT_LOG = 'litespeed_import_log';
 
 	/**
 	 * Init
@@ -31,13 +31,12 @@ class LiteSpeed_Cache_Import
 	 * @since  1.8.2
 	 * @access private
 	 */
-	private function __construct()
-	{
-		LiteSpeed_Cache_Log::debug( 'Import init' ) ;
+	private function __construct() {
+		LiteSpeed_Cache_Log::debug( 'Import init' );
 
-		$this->__cfg = LiteSpeed_Cache_Config::get_instance() ;
+		$this->__cfg = LiteSpeed_Cache_Config::get_instance();
 
-		$this->_cfg_items = $this->__cfg->stored_items() ;
+		$this->_cfg_items = $this->__cfg->stored_items();
 	}
 
 	/**
@@ -46,30 +45,29 @@ class LiteSpeed_Cache_Import
 	 * @since  1.8.2
 	 * @access public
 	 */
-	public static function handler()
-	{
-		$instance = self::get_instance() ;
+	public static function handler() {
+		$instance = self::get_instance();
 
-		$type = LiteSpeed_Cache_Router::verify_type() ;
+		$type = LiteSpeed_Cache_Router::verify_type();
 
 		switch ( $type ) {
-			case self::TYPE_IMPORT :
-				$instance->_import() ;
-				break ;
+			case self::TYPE_IMPORT:
+				$instance->_import();
+				break;
 
-			case self::TYPE_EXPORT :
-				$instance->_export() ;
-				break ;
+			case self::TYPE_EXPORT:
+				$instance->_export();
+				break;
 
-			case self::TYPE_RESET :
-				$instance->_reset() ;
-				break ;
+			case self::TYPE_RESET:
+				$instance->_reset();
+				break;
 
 			default:
-				break ;
+				break;
 		}
 
-		LiteSpeed_Cache_Admin::redirect() ;
+		LiteSpeed_Cache_Admin::redirect();
 	}
 
 	/**
@@ -78,9 +76,8 @@ class LiteSpeed_Cache_Import
 	 * @since  2.4.1
 	 * @return string All settings data
 	 */
-	public function export()
-	{
-		return $this->_export( true ) ;
+	public function export() {
+		return $this->_export( true );
 	}
 
 	/**
@@ -89,38 +86,36 @@ class LiteSpeed_Cache_Import
 	 * @since  1.8.2
 	 * @access private
 	 */
-	private function _export( $only_data_return = false )
-	{
-
-		$data = array() ;
+	private function _export( $only_data_return = false ) {
+		$data = array();
 		foreach ( $this->_cfg_items as $v ) {
-			$data[ $v ] = get_option( $v ) ;// Here doesn't need the default_item value so no need to call `LiteSpeed_Cache_Config::get_instance()->get_item()`
+			$data[ $v ] = get_option( $v );// Here doesn't need the default_item value so no need to call `LiteSpeed_Cache_Config::get_instance()->get_item()`
 		}
 
-		$data = base64_encode( json_encode( $data ) ) ;
+		$data = base64_encode( json_encode( $data ) );
 
 		if ( $only_data_return ) {
-			return $data ;
+			return $data;
 		}
 
-		$filename = $this->_generate_filename() ;
+		$filename = $this->_generate_filename();
 
 		// Update log
-		$log = get_option( self::DB_IMPORT_LOG, array() ) ;
-		if ( empty( $log[ 'export' ] ) ) {
-			$log[ 'export' ] = array() ;
+		$log = get_option( self::DB_IMPORT_LOG, array() );
+		if ( empty( $log['export'] ) ) {
+			$log['export'] = array();
 		}
-		$log[ 'export' ][ 'file' ] = $filename ;
-		$log[ 'export' ][ 'time' ] = time() ;
+		$log['export']['file'] = $filename;
+		$log['export']['time'] = time();
 
-		update_option( self::DB_IMPORT_LOG, $log ) ;
+		update_option( self::DB_IMPORT_LOG, $log );
 
-		LiteSpeed_Cache_Log::debug( 'Import: Saved to ' . $filename ) ;
+		LiteSpeed_Cache_Log::debug( 'Import: Saved to ' . $filename );
 
-		@header( 'Content-Disposition: attachment; filename=' . $filename ) ;
-		echo $data ;
+		@header( 'Content-Disposition: attachment; filename=' . $filename );
+		echo $data;
 
-		exit ;
+		exit;
 	}
 
 	/**
@@ -128,9 +123,8 @@ class LiteSpeed_Cache_Import
 	 *
 	 * @since  2.4.1
 	 */
-	public function import( $file )
-	{
-		return $this->_import( $file ) ;
+	public function import( $file ) {
+		return $this->_import( $file );
 	}
 
 	/**
@@ -139,75 +133,72 @@ class LiteSpeed_Cache_Import
 	 * @since  1.8.2
 	 * @access private
 	 */
-	private function _import( $file = false )
-	{
+	private function _import( $file = false ) {
 		if ( ! $file ) {
-			if ( empty( $_FILES[ 'ls_file' ][ 'name' ] ) || substr( $_FILES[ 'ls_file' ][ 'name' ], -5 ) != '.data' || empty( $_FILES[ 'ls_file' ][ 'tmp_name' ] ) ) {
-				LiteSpeed_Cache_Log::debug( 'Import: Failed to import, wront ls_file' ) ;
+			if ( empty( $_FILES['ls_file']['name'] ) || substr( $_FILES['ls_file']['name'], -5 ) != '.data' || empty( $_FILES['ls_file']['tmp_name'] ) ) {
+				LiteSpeed_Cache_Log::debug( 'Import: Failed to import, wront ls_file' );
 
-				$msg = __( 'Import failed due to file error.', 'litespeed-cache' ) ;
-				LiteSpeed_Cache_Admin_Display::error( $msg ) ;
+				$msg = __( 'Import failed due to file error.', 'litespeed-cache' );
+				LiteSpeed_Cache_Admin_Display::error( $msg );
 
-				return false ;
+				return false;
 			}
 
 			// Update log
-			$log = get_option( self::DB_IMPORT_LOG, array() ) ;
-			if ( empty( $log[ 'import' ] ) ) {
-				$log[ 'import' ] = array() ;
+			$log = get_option( self::DB_IMPORT_LOG, array() );
+			if ( empty( $log['import'] ) ) {
+				$log['import'] = array();
 			}
-			$log[ 'import' ][ 'file' ] = $_FILES[ 'ls_file' ][ 'name' ] ;
-			$log[ 'import' ][ 'time' ] = time() ;
+			$log['import']['file'] = $_FILES['ls_file']['name'];
+			$log['import']['time'] = time();
 
-			update_option( self::DB_IMPORT_LOG, $log ) ;
+			update_option( self::DB_IMPORT_LOG, $log );
 
-			$data = file_get_contents( $_FILES[ 'ls_file' ][ 'tmp_name' ] ) ;
-		}
-		else {
-			$data = file_get_contents( $file ) ;
+			$data = file_get_contents( $_FILES['ls_file']['tmp_name'] );
+		} else {
+			$data = file_get_contents( $file );
 		}
 
 		try {
-			$data = json_decode( base64_decode( $data ), true ) ;
+			$data = json_decode( base64_decode( $data ), true );
 		} catch ( \Exception $ex ) {
-			LiteSpeed_Cache_Log::debug( 'Import: Failed to parse serialized data' ) ;
-			return false ;
+			LiteSpeed_Cache_Log::debug( 'Import: Failed to parse serialized data' );
+			return false;
 		}
 
 		if ( ! $data ) {
-			LiteSpeed_Cache_Log::debug( 'Import: Failed to import, no data' ) ;
-			return false ;
+			LiteSpeed_Cache_Log::debug( 'Import: Failed to import, no data' );
+			return false;
 		}
 
-		$options = $data[ LiteSpeed_Cache_Config::OPTION_NAME ] ;
+		$options = $data[ LiteSpeed_Cache_Config::OPTION_NAME ];
 		foreach ( $this->_cfg_items as $v ) {
-			$options[ $v ] = $data[ $v ] ;
+			$options[ $v ] = $data[ $v ];
 		}
 
-		$output = LiteSpeed_Cache_Admin_Settings::get_instance()->validate_plugin_settings( $options, true ) ;
+		$output = LiteSpeed_Cache_Admin_Settings::get_instance()->validate_plugin_settings( $options, true );
 
-		global $wp_settings_errors ;
+		global $wp_settings_errors;
 		if ( ! empty( $wp_settings_errors ) ) {
 			foreach ( $wp_settings_errors as $err ) {
-				LiteSpeed_Cache_Admin_Display::error( $err[ 'message' ] ) ;
-				LiteSpeed_Cache_Log::debug( '[Import] err ' . $err[ 'message' ] ) ;
+				LiteSpeed_Cache_Admin_Display::error( $err['message'] );
+				LiteSpeed_Cache_Log::debug( '[Import] err ' . $err['message'] );
 			}
-			return false ;
+			return false;
 		}
 
 		if ( ! $file ) {
-			LiteSpeed_Cache_Log::debug( 'Import: Imported ' . $_FILES[ 'ls_file' ][ 'name' ] ) ;
+			LiteSpeed_Cache_Log::debug( 'Import: Imported ' . $_FILES['ls_file']['name'] );
 
-			$msg = sprintf( __( 'Imported setting file %s successfully.', 'litespeed-cache' ), $_FILES[ 'ls_file' ][ 'name' ] ) ;
-			LiteSpeed_Cache_Admin_Display::succeed( $msg ) ;
+			$msg = sprintf( __( 'Imported setting file %s successfully.', 'litespeed-cache' ), $_FILES['ls_file']['name'] );
+			LiteSpeed_Cache_Admin_Display::succeed( $msg );
+		} else {
+			LiteSpeed_Cache_Log::debug( 'Import: Imported ' . $file );
 		}
-		else {
-			LiteSpeed_Cache_Log::debug( 'Import: Imported ' . $file ) ;
-		}
 
-		$ret = $this->__cfg->update_options( $output ) ;
+		$ret = $this->__cfg->update_options( $output );
 
-		return true ;
+		return true;
 
 	}
 
@@ -216,9 +207,8 @@ class LiteSpeed_Cache_Import
 	 *
 	 * @since  2.6.3
 	 */
-	public function reset()
-	{
-		return $this->_reset() ;
+	public function reset() {
+		return $this->_reset();
 	}
 
 	/**
@@ -227,24 +217,23 @@ class LiteSpeed_Cache_Import
 	 * @since  2.6.3
 	 * @access private
 	 */
-	private function _reset()
-	{
-		$options = $this->__cfg->get_default_options() ;
+	private function _reset() {
+		 $options = $this->__cfg->get_default_options();
 		// Get items
 		foreach ( $this->_cfg_items as $v ) {
-			$options[ $v ] = $this->__cfg->default_item( $v ) ;
+			$options[ $v ] = $this->__cfg->default_item( $v );
 		}
 
-		$output = LiteSpeed_Cache_Admin_Settings::get_instance()->validate_plugin_settings( $options, true ) ;
+		$output = LiteSpeed_Cache_Admin_Settings::get_instance()->validate_plugin_settings( $options, true );
 
-		$ret = $this->__cfg->update_options( $output ) ;
+		$ret = $this->__cfg->update_options( $output );
 
-		LiteSpeed_Cache_Log::debug( '[Import] Reset successfully.' ) ;
+		LiteSpeed_Cache_Log::debug( '[Import] Reset successfully.' );
 
-		$msg = __( 'Reset successfully.', 'litespeed-cache' ) ;
-		LiteSpeed_Cache_Admin_Display::succeed( $msg ) ;
+		$msg = __( 'Reset successfully.', 'litespeed-cache' );
+		LiteSpeed_Cache_Admin_Display::succeed( $msg );
 
-		return true ;
+		return true;
 	}
 
 	/**
@@ -253,24 +242,23 @@ class LiteSpeed_Cache_Import
 	 * @since  1.8.2
 	 * @access private
 	 */
-	private function _generate_filename()
-	{
-		// Generate filename
-		$parsed_home = parse_url( get_home_url() ) ;
-		$filename = 'LSCWP_cfg-' ;
-		if ( ! empty( $parsed_home[ 'host' ] ) ) {
-			$filename .= $parsed_home[ 'host' ] . '_' ;
+	private function _generate_filename() {
+		 // Generate filename
+		$parsed_home = parse_url( get_home_url() );
+		$filename    = 'LSCWP_cfg-';
+		if ( ! empty( $parsed_home['host'] ) ) {
+			$filename .= $parsed_home['host'] . '_';
 		}
 
-		if ( ! empty( $parsed_home[ 'path' ] ) ) {
-			$filename .= $parsed_home[ 'path' ] . '_' ;
+		if ( ! empty( $parsed_home['path'] ) ) {
+			$filename .= $parsed_home['path'] . '_';
 		}
 
-		$filename = str_replace( '/', '_', $filename ) ;
+		$filename = str_replace( '/', '_', $filename );
 
-		$filename .= '-' . date( 'Ymd_His' ) . '.data' ;
+		$filename .= '-' . date( 'Ymd_His' ) . '.data';
 
-		return $filename ;
+		return $filename;
 	}
 
 	/**
@@ -280,12 +268,11 @@ class LiteSpeed_Cache_Import
 	 * @access public
 	 * @return Current class instance.
 	 */
-	public static function get_instance()
-	{
+	public static function get_instance() {
 		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self() ;
+			self::$_instance = new self();
 		}
 
-		return self::$_instance ;
+		return self::$_instance;
 	}
 }

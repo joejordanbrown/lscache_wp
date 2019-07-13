@@ -3,27 +3,26 @@
  *
  * @author LiteSpeed
  * @since 1.4
- *
  */
 
 (function( window, document ){
-	'use strict' ;
+	'use strict';
 
-	var instance ;
-	var update_lazyload ;
+	var instance;
+	var update_lazyload;
 
 	var init = function(){
-		instance = new LazyLoad( { elements_selector : "[data-lazyloaded]" } ) ;
+		instance = new LazyLoad( { elements_selector : "[data-lazyloaded]" } );
 
 		update_lazyload = function(){
-			instance.update() ;
+			instance.update();
 		};
 
 		if ( window.MutationObserver ) {
-			new MutationObserver( update_lazyload ).observe( document.documentElement, { childList: true, subtree: true, attributes: true } ) ;
+			new MutationObserver( update_lazyload ).observe( document.documentElement, { childList: true, subtree: true, attributes: true } );
 		}
 	};
 
-	window.addEventListener ? window.addEventListener( "load", init, false ) : window.attachEvent( "onload", init ) ;
+	window.addEventListener ? window.addEventListener( "load", init, false ) : window.attachEvent( "onload", init );
 
-})( window, document ) ;
+})( window, document );
